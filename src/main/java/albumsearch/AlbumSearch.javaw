@@ -1,0 +1,143 @@
+import com.wrapper.spotify.Api;
+import com.wrapper.spotify.models.AuthorizationCodeCredentials;
+import com.wrapper.spotify.models.User;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.SettableFuture;
+import com.wrapper.spotify.Api;
+import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
+import com.wrapper.spotify.methods.AlbumRequest;
+import com.wrapper.spotify.models.ClientCredentials;
+import com.wrapper.spotify.models.Album;
+import java.util.*;
+
+
+
+/**
+ * This example shows how to get information about the user that is 'connected' to the
+ * access token. The methods used (api.authorizationCodeGrant and api.getMe) are synchronous, but are
+ * available asynchronously as well. The scopes necessary for this example are 'user-read-private'
+ * and 'user-read-email'.
+ *
+ * The authorization flow used is documented in detail at
+ * https://developer.spotify.com/spotify-web-api/authorization-guide/#authorization_code_flow
+ *
+ * Details about requesting the current user's information is documented at
+ * https://developer.spotify.com/spotify-web-api/get-users-profile/ in the
+ * "Authorization Code" section.
+ */
+public class AlbumSearch {
+  public static void request(String code) {
+
+    /* Application details necessary to get an access token */
+    final String clientId = "7b2aaa9df988404785e3f7e25140d32d";
+    final String clientSecret = "23e34a8c51374522a7652f91b7e1c8de";
+    //final String code = "";
+    final String redirectUri = "http://localhost:1000/asdf";
+
+    /* Create a default API instance that will be used to make requests to Spotify */
+    final Api api = Api.builder()
+            .clientId(clientId)
+            .clientSecret(clientSecret)
+            .redirectURI(redirectUri)
+            .build();
+
+    try {
+
+      /* Retrieve an access token */
+      final AuthorizationCodeCredentials authorizationCodeCredentials = api.authorizationCodeGrant(code).build().get();
+
+      /* The token response contains a refresh token, an accesstoken, and some other things.
+       * We only need the access token to retrieve the user's information.
+       */
+      final String accessToken = authorizationCodeCredentials.getAccessToken();
+
+      /* Retrieve information about the user.
+      * The amount of information that is set on the User object depends on the scopes that
+      * the user has allowed the application to read.
+      * Read about which scopes that are available on
+      * https://developer.spotify.com/spotify-web-api/get-users-profile/
+      */
+      final User currentUser = api.getMe().accessToken(accessToken).build().get();
+
+      /* Use the information about the user */
+      System.out.println("URI to currently logged in user is: " + currentUser.getUri());
+      System.out.println("The currently logged in user comes from: " + currentUser.getCountry());
+      System.out.println("You can reach this user at: " + currentUser.getEmail());
+
+    } catch (Exception e) {
+      System.out.println("Something went wrong.");
+      e.printStackTrace();
+    }
+
+  }
+
+  public static void main(String[] strings) {
+
+    final String clientId = "7b2aaa9df988404785e3f7e25140d32d";
+    final String clientSecret = "23e34a8c51374522a7652f91b7e1c8de";
+
+    final Api api = Api.builder()
+            .clientId(clientId)
+            .clientSecret(clientSecret)
+            .build();
+
+    /* Create a request object. */
+    final ClientCredentialsGrantRequest request = api.clientCredentialsGrant().build();
+
+    /* Use the request object to make the request, either asynchronously (getAsync) or synchronously (get) */
+    final SettableFuture<ClientCredentials> responseFuture = request.getAsync();
+
+    /* Add callbacks to handle success and failure */
+    Futures.addCallback(responseFuture, new FutureCallback<ClientCredentials>() {
+      @Override
+      public void onSuccess(ClientCredentials clientCredentials) {
+        /* The tokens were retrieved successfully! */
+        String accessToken = clientCredentials.getAccessToken();
+        System.out.println("Successfully retrieved an access token! " + accessToken);
+        System.out.println("The access token expires in " + clientCredentials.getExpiresIn() + " seconds");
+
+        try{
+
+// Create a request object for the type of request you want to make
+        final Api api1 = Api.DEFAULT_API;
+
+AlbumRequest request = api1.getAlbum("7e0ij2fpWaxOEHv5fUYZjd").build();
+
+// Retrieve an album
+try {
+  Album album = request.get();
+  
+  // Print the genres of the album
+  List<String> genres = album.getGenres(); 
+  for (String genre : genres) {
+    System.out.println(genre);
+  };
+  
+} catch (Exception e) {
+  System.out.println("Could not get albums.");
+}
+
+      final User currentUser = api.getMe().accessToken(accessToken).build().get();
+
+      /* Use the information about the user */
+      System.out.println("URI to currently logged in user is: " + currentUser.getUri());
+      System.out.println("The currently logged in user comes from: " + currentUser.getCountry());
+      System.out.println("You can reach this user at: " + currentUser.getEmail());
+      }catch(Exception e){
+        e.printStackTrace();
+      }
+        /* Please note that this flow does not return a refresh token.
+         * That's only for the Authorization code flow */
+      }
+
+      @Override
+      public void onFailure(Throwable throwable) {
+        /* An error occurred while getting the access token. This is probably caused by the client id or
+         * client secret is invalid. */
+        System.out.println("Failed to resolve future: " + throwable.getMessage());
+      }
+    });
+
+}
+}
