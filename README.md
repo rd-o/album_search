@@ -1,11 +1,11 @@
 # Album Search
-## Generate jar file
+### Generate jar file
 
 ```bash
 $ gradle assemble
 ```
-## Execute
+### Execute
 
 ```bash
-$ java -jar build/libs/gs-spring-boot-0.1.0.jar hummer
+$ java -jar build/libs/album_search-*.jar hummer
 ```
